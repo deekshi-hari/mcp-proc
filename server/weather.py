@@ -34,3 +34,22 @@ def format_alert(feature: dict) -> str:
             Description: {props.get('description', 'Unknown')}
             Instructions: {props.get('instructions', 'Unknown')}
             """
+
+@mcp.tool()
+async def get_alerts(state: str) -> str:
+    """Get weather alerts from a US state.
+
+    Args:
+        state: Two-letter US state code (e.g. CA, NY)
+    """
+    url = f"{NWS_API_BASE}/alerts/active/area/{state}"
+    data = await make_nws_request(url)
+
+    if not data or "features" not in data:
+        return "unable to fetch alerts"
+    
+    if not data["features"]:
+        return "NO active alerts for this state"
+    
+    alerts = [format_alert(feature) for feature in data['features']]
+    return "\n---\n".join(alerts)
